@@ -141,7 +141,7 @@ export function generateOfferHTML(data: OfferTemplateData): string {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Umzug Angebot ${escapeHtml(data.kundenummer)} - Move Profis</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  
     <style>
         :root {
             --primary-orange: #F39200;
@@ -154,7 +154,7 @@ export function generateOfferHTML(data: OfferTemplateData): string {
             margin: 0;
         }
         body {
-            font-family: 'Montserrat', sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
             margin: 0;
             padding: 0;
             color: var(--text-color);
