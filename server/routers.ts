@@ -6,6 +6,7 @@ import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { customersRouter } from "./routers/customers";
 import { branchesRouter } from "./routers/branches";
 import { adminRouter } from "./routers/admin";
+import { remindersRouter } from "./routers/reminders";
 import { getDb } from "./db";
 import { generateInvoiceHTML, InvoiceData } from "./invoiceTemplate";
 import { generatePDF } from "./pdfGenerator";
