@@ -6,7 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import RequireAuth from "./components/RequireAuth";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-
+import Reminders from "./pages/Reminders";
 import NewCustomer from "./pages/NewCustomer";
 import AdminDashboard from "./pages/AdminDashboard";
 import WorkerDashboard from "./pages/WorkerDashboard";
@@ -32,6 +32,11 @@ function Router() {
       <Route path={"/admin"}>
         <RequireAuth allowedRoles={["admin"]}>
           <AdminDashboard />
+        </RequireAuth>
+      </Route>
+      <Route path={"/reminders"}>
+        <RequireAuth allowedRoles={["admin", "sales"]}>
+          <Reminders />
         </RequireAuth>
       </Route>
       <Route path={"/admin-reports"}>
