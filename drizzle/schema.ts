@@ -359,3 +359,19 @@ export const invoices = mysqlTable("invoices", {
 
 export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = typeof invoices.$inferInsert;
+
+
+export const customerReminders = mysqlTable("customerReminders", {
+  id: int("id").autoincrement().primaryKey(),
+  customerId: int("customerId").notNull().unique(),
+  branchId: int("branchId").notNull(),
+  customerName: varchar("customerName", { length: 255 }).notNull(),
+  kundennummer: varchar("kundennummer", { length: 50 }).notNull(),
+  versuch: varchar("versuch", { length: 50 }),
+  lastUpdatedAt: timestamp("lastUpdatedAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CustomerReminder = typeof customerReminders.$inferSelect;
+export type InsertCustomerReminder = typeof customerReminders.$inferInsert;
