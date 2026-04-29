@@ -567,9 +567,33 @@ export const appRouter = router({
           if (input.shaden !== undefined) customerUpdate.shaden = input.shaden;
           if (input.angebotPerPost !== undefined) customerUpdate.angebotPerPost = input.angebotPerPost ? 1 : 0;
           if (input.bezahlt !== undefined) customerUpdate.bezahlt = input.bezahlt ? 1 : 0;
-          if (input.mitFotos !== undefined) customerUpdate.mitFotos = input.mitFotos ? 1 : 0;
+         if (input.mitFotos !== undefined) customerUpdate.mitFotos = input.mitFotos ? 1 : 0;
           if (Object.keys(customerUpdate).length > 0) {
             await db.update(customers).set(customerUpdate as any).where(eq(customers.id, existingMove.customerId));
+          }
+
+          // Sync reminder: bump lastUpdatedAt + sync versuch + refresh name.
+          // Wrapped in try/catch so a stale/missing reminder never blocks save.
+          try {
+            const remName = [
+              customerUpdate.title ?? existingMove.title ?? null,
+              customerUpdate.firstName ?? existingMove.firstName ?? null,
+              customerUpdate.lastName ?? existingMove.lastName ?? null,
+            ]
+              .filter(Boolean)
+              .join(" ")
+              .trim();
+            const remUpdate: Record<string, unknown> = {
+              lastUpdatedAt: new Date(),
+            };
+            if (remName) remUpdate.customerName = remName;
+            if (input.versuch !== undefined) remUpdate.versuch = input.versuch;
+            await db
+              .update(customerReminders)
+              .set(remUpdate as any)
+              .where(eq(customerReminders.customerId, existingMove.customerId));
+          } catch (e) {
+            console.error("Failed to sync reminder:", e);
           }
           // تحديث بيانات الطلب
           const moveUpdate: Record<string, unknown> = {};
