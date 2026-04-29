@@ -10,7 +10,7 @@ import { remindersRouter } from "./routers/reminders";
 import { getDb } from "./db";
 import { generateInvoiceHTML, InvoiceData } from "./invoiceTemplate";
 import { generatePDF } from "./pdfGenerator";
-import { moves, users, customers, moveImages, messageTemplates, branches, invoices, tasks } from "../drizzle/schema";
+import { moves, users, customers, moveImages, messageTemplates, branches, invoices, tasks, customerReminders } from "../drizzle/schema";
 import { and, desc, like, or, sql, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import {
