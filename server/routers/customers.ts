@@ -269,7 +269,7 @@ export const customersRouter = router({
             customerId,
             branchId: effectiveBranchId,
             customerName: fullName || "Unbekannt",
-            kundennummer,
+           kundennummer: kundenummer,
             versuch: null, // will be set on first edit
           });
         } catch (reminderError) {
