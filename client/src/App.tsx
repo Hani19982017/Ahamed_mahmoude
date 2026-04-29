@@ -13,6 +13,7 @@ import WorkerDashboard from "./pages/WorkerDashboard";
 import BranchesManagement from "./pages/BranchesManagement";
 import AdminReports from "./pages/AdminReports";
 import Orders from "./pages/Orders";
+import Reminders from "@/pages/Reminders";
 import UsersManagement from "./pages/UsersManagement";
 import Rechnungen from "./pages/Rechnungen";
 import LocalLogin from "./pages/LocalLogin";
