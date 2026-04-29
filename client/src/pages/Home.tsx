@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 const ADMIN_CARDS = [
   { href: "/new-customer", emoji: "👥", title: "العملاء و إدارتها",          desc: "إضافة بيانات العملاء" },
   { href: "/orders",       emoji: "📦", title: "متابعة العملاء و إدارتها",             desc: "متابعة الإستحواذ على العميل" },
+  { href: "/new-customer", emoji: "👥", title: "العملاء و إدارتها",          desc: "إضافة بيانات العملاء" },
+  { href: "/orders",       emoji: "📦", title: "متابعة العملاء و إدارتها",             desc: "متابعة الإستحواذ على العميل" },
+  { href: "/reminders",    emoji: "⏰", title: "Erinnerungen & Kontaktstatus", desc: "Kunden, die nachverfolgt werden müssen" },
   { href: "/rechnungen",   emoji: "🧾", title: "الفواتير",            desc: "عرض وإدارة الفواتير والمدفوعات" },
   { href: "/admin",        emoji: "📊", title: "لوحة التحكم",         desc: "إدارة العملاء والطلبات والمدفوعات" },
   { href: "/worker",       emoji: "👷", title: "مهام العمال اليومية",         desc: "عرض المهام والعناوين والصور" },
@@ -18,6 +21,9 @@ const ADMIN_CARDS = [
 const SALES_CARDS = [
   { href: "/new-customer", emoji: "👥", title: "العملاء و إدارتها",          desc: "إضافة بيانات العملاء" },
   { href: "/orders",       emoji: "📦", title: "متابعة العملاء و إدارتها",             desc: "متابعة الإستحواذ على العميل" },
+   { href: "/new-customer", emoji: "👥", title: "العملاء و إدارتها",          desc: "إضافة بيانات العملاء" },
+  { href: "/orders",       emoji: "📦", title: "متابعة العملاء و إدارتها",             desc: "متابعة الإستحواذ على العميل" },
+  { href: "/reminders",    emoji: "⏰", title: "Erinnerungen & Kontaktstatus", desc: "Kunden, die nachverfolgt werden müssen" },
   { href: "/rechnungen",   emoji: "🧾", title: "الفواتير",            desc: "عرض وإدارة الفواتير والمدفوعات" },
   { href: "/worker",       emoji: "👷", title: "مهام العمال اليومية",         desc: "عرض المهام والعناوين" },
 ];
