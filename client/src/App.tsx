@@ -53,6 +53,7 @@ function Router() {
         <RequireAuth>
           <Orders />
         </RequireAuth>
+        <Route path="/reminders" component={Reminders} />
       </Route>
       <Route path={"/users"}>
         <RequireAuth allowedRoles={["admin"]}>
