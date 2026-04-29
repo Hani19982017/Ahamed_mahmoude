@@ -259,6 +259,24 @@ export const customersRouter = router({
           }
         }
 
+        // forget to call/whatsapp this new customer.
+        try {
+          const fullName = [input.title, input.firstName, input.lastName]
+            .filter(Boolean)
+            .join(" ")
+            .trim();
+          await db.insert(customerReminders).values({
+            customerId,
+            branchId: effectiveBranchId,
+            customerName: fullName || "Unbekannt",
+            kundennummer,
+            versuch: null, // will be set on first edit
+          });
+        } catch (reminderError) {
+          // Reminder creation should never block the main customer save.
+          console.error("Failed to create reminder:", reminderError);
+        }
+
         return {
           success: true,
           customerId,
