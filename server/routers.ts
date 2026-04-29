@@ -144,6 +144,7 @@ export const appRouter = router({
   branches: branchesRouter,
   admin: adminRouter,
   customers: customersRouter,
+  reminders: remindersRouter,
   moves: router({
     list: protectedProcedure
       .input(z.object({ branchId: z.number().nullable().optional() }).optional())
