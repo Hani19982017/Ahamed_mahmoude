@@ -134,7 +134,7 @@ export default function Home() {
           <div className="grid gap-6 p-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:p-8">
             <div className="space-y-5 arabic">
               <span className="inline-flex items-center rounded-full border border-[#d97e3a]/30 bg-[#fff2e8] px-4 py-1 text-sm font-medium text-[#bd682b]">
-                Umzug Profis Dashboard
+                MOVE PROFIS DASHBOARD
               </span>
               <div className="space-y-3">
                 <h1 className="text-3xl font-bold text-[#1a4d6d] sm:text-4xl">مرحباً {user?.name}، إدارة العمليات أصبحت في مكان واحد</h1>
