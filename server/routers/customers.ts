@@ -267,12 +267,12 @@ export const customersRouter = router({
             .filter(Boolean)
             .join(" ")
             .trim();
-          await db.insert(customerReminders).values({
+       await db.insert(customerReminders).values({
             customerId,
             branchId: effectiveBranchId,
             customerName: fullName || "Unbekannt",
-           kundennummer: kundenummer,
-            versuch: null, // will be set on first edit
+            kundennummer: kundenummer,
+            versuch: input.versuch ?? null,
           });
         } catch (reminderError) {
           // Reminder creation should never block the main customer save.
