@@ -185,7 +185,7 @@ export default function LocalLogin() {
           <div className="mb-2 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-[#1a4d6d]/25 bg-[#eaf2f7]">
             <Building2 className="h-8 w-8 text-[#1a4d6d]" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Umzug Profis</h1>
+          <h1 className="text-2xl font-bold text-white">MOVE PROFIS</h1>
           <p className="text-sm text-slate-400">Manager-Zugang mit fester E-Mail und eigenem Passwort, Mitarbeiter-Zugang separat per Benutzername</p>
         </div>
 
