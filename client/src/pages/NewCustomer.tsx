@@ -550,11 +550,14 @@ export default function NewCustomer() {
 
     createCustomer.mutate({
       branchId,
-      title: anrede,
+    title: anrede,
       firstName: name.split(" ")[0] || name || "Unbekannt",
       lastName: name.split(" ").slice(1).join(" ") || "-",
       email: email || undefined,
       phone: phone || undefined,
+      versuch: versuch || undefined,
+
+      moveCode: kundenummer || undefined,
 
       moveCode: kundenummer || undefined,
       pickupAddress: auszugsort || "-",
