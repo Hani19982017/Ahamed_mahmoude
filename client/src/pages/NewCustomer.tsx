@@ -128,7 +128,7 @@ const etageOptions = [
   "Erdgeschoss","1.Etage","2.Etage","3.Etage","4.Etage","5.Etage","6.Etage+",
 ];
 const fahrstuhlOptions = [
-  "kein Aufzug vorhanden","Aufzug klein","Aufzug mittel","Aufzug groß",
+  "kein Aufzug vorhanden","Für 2 personen","Für 4 personen","Für 6 personen",
 ];
 const laufwegOptions = [
   "0 - 10 m","10 - 20 m","20 - 30 m","30 - 40 m","40 - 50 m","50 m+",
