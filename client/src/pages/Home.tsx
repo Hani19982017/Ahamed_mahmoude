@@ -93,7 +93,7 @@ export default function Home() {
           <div className="grid w-full max-w-6xl gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div className="space-y-6 text-right arabic">
               <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-1 text-sm text-white/90 backdrop-blur-sm">
-                Umzug Profis · Management System
+                MOVE PROFIS · Management System
               </span>
               <div className="space-y-4">
                 <h1 className="text-4xl font-bold leading-tight sm:text-5xl">إدارة العملاء والطلبات والعمال والفواتير</h1>
@@ -109,7 +109,7 @@ export default function Home() {
                   alt="Move Profis"
                   className="mb-4 h-24 w-auto rounded-2xl border border-[#d97e3a]/40 bg-white px-6 py-4 shadow-lg"
                 />
-                <h2 className="text-2xl font-semibold">أهلاً بك في Umzug Profis</h2>
+                <h2 className="text-2xl font-semibold">أهلاً بك في MOVE PROFIS</h2>
                 <p className="mt-2 text-sm leading-7 text-white/75">اختر القسم المناسب لك: المدير له دخول مستقل عبر البريد الإلكتروني الثابت مع كلمة سر خاصة، والعمال وبقية المستخدمين لهم صفحة دخول مستقلة عبر اسم المستخدم وكلمة السر.</p>
               </div>
               <div className="space-y-3">
