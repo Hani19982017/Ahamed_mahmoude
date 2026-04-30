@@ -174,7 +174,7 @@ export const customersRouter = router({
       const effectiveBranchId: number = input.branchId ?? ctx.user.branchId ?? 1;
 
       try {
-        const customerResult = await db
+      const customerResult = await db
           .insert(customers)
           .values({
             branchId: effectiveBranchId,
@@ -185,6 +185,7 @@ export const customersRouter = router({
             phone: input.phone,
             company: input.company,
             notes: input.notes,
+            versuch: input.versuch,
           })
           .$returningId();
 
