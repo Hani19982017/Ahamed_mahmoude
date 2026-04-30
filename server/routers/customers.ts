@@ -106,7 +106,7 @@ export const customersRouter = router({
         // Branch data - يمكن أن يكون null ويُحدَّد تلقائياً من المستخدم
         branchId: z.number().nullable().optional(),
         // Customer data
-        title: z.string().optional(),
+       title: z.string().optional(),
         firstName: z.string().min(1),
         lastName: z.string().min(1),
         email: z.string().email().optional(),
@@ -114,6 +114,7 @@ export const customersRouter = router({
         company: z.string().optional(),
         source: z.string().optional(),
         notes: z.string().optional(),
+        versuch: z.string().optional(),
 
         // Move data
         moveCode: z.string().min(1).optional(),
