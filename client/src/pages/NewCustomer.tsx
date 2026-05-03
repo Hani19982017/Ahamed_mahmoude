@@ -740,8 +740,8 @@ export default function NewCustomer() {
             <Field label="Email"><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" /></Field>
             <Field label="Status">
               <select className="w-full border rounded px-3 py-2 text-sm" value={status} onChange={(e) => setStatus(e.target.value)}>
-                <option>Registriert auf Apex</option><option>Angebot gesendet</option>
-                <option>Bestätigt</option><option>Abgesagt</option><option>Abgeschlossen</option>
+                <option>Angaben vollständig</option><option>Nachverfolgen</option>
+                <option>Online-besichtigungtermin</option><option>Besichtigungtermin</option><option>Absagen</option>
               </select>
             </Field>
             <Field label="Kundennummer"><Input value={kundenummer} readOnly placeholder={KUNDENNUMMER_PLACEHOLDER} /></Field>
