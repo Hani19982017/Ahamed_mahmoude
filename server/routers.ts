@@ -455,6 +455,9 @@ export const appRouter = router({
         sitz: z.string().optional(),
         status2: z.string().optional(),
         versuch: z.string().optional(),
+        // reminderDate (YYYY-MM-DD) — manually set follow-up date for the
+        // Reminders section. null/undefined keeps the existing value.
+        reminderDate: z.string().nullable().optional(),
         callCheck: z.string().optional(),
         shaden: z.string().optional(),
         angebotPerPost: z.boolean().optional(),
@@ -582,6 +585,15 @@ export const appRouter = router({
             };
             if (remName) remUpdate.customerName = remName;
             if (input.versuch !== undefined) remUpdate.versuch = input.versuch;
+            // Sync reminderDate if the editor changed it. We accept:
+            //   - YYYY-MM-DD string → stored as DATE
+            //   - null               → reminder cleared (customer hidden)
+            //   - undefined          → no change (don't touch the field)
+            if (input.reminderDate !== undefined) {
+              remUpdate.reminderDate = input.reminderDate
+                ? new Date(input.reminderDate)
+                : null;
+            }
             await db
               .update(customerReminders)
               .set(remUpdate as any)
