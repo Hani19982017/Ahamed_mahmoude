@@ -268,7 +268,7 @@ export const appRouter = router({
             ...img,
             imageUrl: img.imageUrl || `/api/images/${img.id}`,
           }));
-          return { move, customer: customer ?? null, images };
+          return { move, customer: customer ?? null, images, reminder };
         } catch (e) {
           console.error("Error fetching move:", e);
           return null;
