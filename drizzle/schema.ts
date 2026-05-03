@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, date } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -368,6 +368,10 @@ export const customerReminders = mysqlTable("customerReminders", {
   customerName: varchar("customerName", { length: 255 }).notNull(),
   kundennummer: varchar("kundennummer", { length: 50 }).notNull(),
   versuch: varchar("versuch", { length: 50 }),
+  // reminderDate: when sales should be reminded to follow up.
+  // The customer only appears in the Reminders section once this date has arrived.
+  // NULL means no reminder is scheduled (customer is hidden from the list).
+  reminderDate: date("reminderDate"),
   lastUpdatedAt: timestamp("lastUpdatedAt").defaultNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
