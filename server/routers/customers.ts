@@ -115,6 +115,10 @@ export const customersRouter = router({
         source: z.string().optional(),
         notes: z.string().optional(),
         versuch: z.string().optional(),
+        // reminderDate (YYYY-MM-DD) — sales sets a follow-up date here.
+        // The customer appears in the Reminders section once this date arrives.
+        // null/undefined = no reminder scheduled.
+        reminderDate: z.string().nullable().optional(),
 
         // Move data
         moveCode: z.string().min(1).optional(),
@@ -273,6 +277,9 @@ export const customersRouter = router({
             customerName: fullName || "Unbekannt",
             kundennummer: kundenummer,
             versuch: input.versuch ?? null,
+            // Convert ISO date string → Date object for the DATE column.
+            // null is preserved so customers without a reminder are hidden in the list.
+            reminderDate: input.reminderDate ? new Date(input.reminderDate) : null,
           });
         } catch (reminderError) {
           // Reminder creation should never block the main customer save.
