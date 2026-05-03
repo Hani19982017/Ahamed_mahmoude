@@ -310,6 +310,10 @@ export default function NewCustomer() {
   const [mitFotos, setMitFotos] = useState(true);
   const [terminVon, setTerminVon] = useState("");
   const [terminBis, setTerminBis] = useState("");
+  // reminderDate: when sales should be reminded to follow up. Sales picks
+  // any future date here; the customer appears in the Reminders section
+  // automatically when that date arrives. Leaving it blank means no reminder.
+  const [reminderDate, setReminderDate] = useState("");
   const [kundenummer, setKundenummer] = useState("");
   const [savedCustomerId, setSavedCustomerId] = useState<number | null>(null);
   const [savedMoveId, setSavedMoveId] = useState<number | null>(null);
@@ -556,6 +560,9 @@ export default function NewCustomer() {
       email: email || undefined,
       phone: phone || undefined,
       versuch: versuch || undefined,
+      // Pass reminder date to create. Empty string is normalized to null so
+      // the customer is saved with no scheduled reminder (hidden from the list).
+      reminderDate: reminderDate || null,
 
       moveCode: kundenummer || undefined,
 
@@ -720,6 +727,15 @@ export default function NewCustomer() {
               </select>
             </Field>
             <Field label="Umzug Termin Bis"><Input type="date" value={terminBis} onChange={(e) => setTerminBis(e.target.value)} placeholder="Bis Datum" /></Field>
+
+            <Field label="موعد التذكير / Erinnerungsdatum">
+              <Input
+                type="date"
+                value={reminderDate}
+                onChange={(e) => setReminderDate(e.target.value)}
+                placeholder="Optional"
+              />
+            </Field>
 
             <Field label="Email"><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" /></Field>
             <Field label="Status">
