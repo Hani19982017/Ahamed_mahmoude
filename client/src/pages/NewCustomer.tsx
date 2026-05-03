@@ -326,11 +326,11 @@ export default function NewCustomer() {
   const [auszugsort, setAuszugsort] = useState("");
   const [auszugEtage, setAuszugEtage] = useState("Erdgeschoss");
   const [auszugFahrstuhl, setAuszugFahrstuhl] = useState("kein Aufzug vorhanden");
-  const [auszugLaufweg, setAuszugLaufweg] = useState("10 - 20 m");
+  const [auszugLaufweg, setAuszugLaufweg] = useState(laufwegOptions[0]);
   const [einzugsort, setEinzugsort] = useState("");
   const [einzugEtage, setEinzugEtage] = useState("Erdgeschoss");
   const [einzugFahrstuhl, setEinzugFahrstuhl] = useState("kein Aufzug vorhanden");
-  const [einzugLaufweg, setEinzugLaufweg] = useState("10 - 20 m");
+  const [einzugLaufweg, setEinzugLaufweg] = useState(laufwegOptions[0]);
 
   // ── Immobilien ──
   const [auszugFlaeche, setAuszugFlaeche] = useState("");
@@ -830,8 +830,8 @@ export default function NewCustomer() {
                   </Field>
                   <Field label="Laufweg">
                     <select className="w-full border rounded px-3 py-2 text-sm" value={auszugLaufweg} onChange={(e) => setAuszugLaufweg(e.target.value)}>
-                      {laufwegOptions.map((o) => <option key={o}>{o}</option>)}
-                    </select>
+                      {laufwegOptions.map((o) => <option key={o} value={o}>{o}</option>)}
+                    </select>     
                   </Field>
                 </div>
               </div>
@@ -851,7 +851,7 @@ export default function NewCustomer() {
                   </Field>
                   <Field label="Laufweg">
                     <select className="w-full border rounded px-3 py-2 text-sm" value={einzugLaufweg} onChange={(e) => setEinzugLaufweg(e.target.value)}>
-                      {laufwegOptions.map((o) => <option key={o}>{o}</option>)}
+                      {laufwegOptions.map((o) => <option key={o} value={o}>{o}</option>)}
                     </select>
                   </Field>
                 </div>
