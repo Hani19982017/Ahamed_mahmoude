@@ -259,18 +259,12 @@ export const appRouter = router({
           const [customer] = await db.select().from(customers).where(eq(customers.id, move.customerId)).limit(1);
           // Don't pull the LONGBLOB `data` column — it's heavy and only needed
           // when serving an individual image via /api/images/:id.
-          const rawImages = await db.select({
-            id: moveImages.id,
-            moveId: moveImages.moveId,
-            imageUrl: moveImages.imageUrl,
-            imageKey: moveImages.imageKey,
-            mimeType: moveImages.mimeType,
-            imageType: moveImages.imageType,
-            uploadedBy: moveImages.uploadedBy,
-            uploadedAt: moveImages.uploadedAt,
-          }).from(moveImages).where(eq(moveImages.moveId, move.id));
-          // Make sure imageUrl always points to /api/images/:id for new blob-stored images.
-          const images = rawImages.map((img) => ({
+      // Fetch images, but exclude the heavy LONGBLOB `data` column.
+          // Drizzle's column-explicit select was failing on Render with
+          // "Cannot convert undefined or null to object", so we use the
+          // simpler approach: full select then strip `data` in JS.
+          const rawImages = await db.select().from(moveImages).where(eq(moveImages.moveId, move.id));
+          const images = rawImages.map(({ data: _ignored, ...img }) => ({
             ...img,
             imageUrl: img.imageUrl || `/api/images/${img.id}`,
           }));
