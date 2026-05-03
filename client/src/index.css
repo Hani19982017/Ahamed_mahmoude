@@ -81,6 +81,11 @@
   --container-5xl : 74rem !important;
 }
 
+td, th
+{
+  text-align : center !important;
+}
+
 .dark {
   /* Umzug Profis Dark Mode */
   --primary: oklch(0.45 0.12 260); /* Lighter Blue for dark mode */
