@@ -1,14 +1,25 @@
+/**
+ * Customer reminders page (v2 — manual-date model).
+ *
+ * Shows ONLY customers whose reminderDate is today or in the past.
+ * Customers without a scheduled reminder are hidden — section appears
+ * empty when there's no follow-up to do.
+ *
+ * Click a customer → dialog opens with:
+ *   - Date picker for the next reminder
+ *   - Versuch dropdown (1-6)
+ *   - Save button (updates reminderDate + versuch)
+ *   - "Erinnerung entfernen" button (clears reminderDate, keeps the record)
+ *   - Cancel button
+ *
+ * All visible items render with a single green dot (no yellow).
+ */
+
 import { useState } from "react";
-import { useLocation } from "wouter";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -17,388 +28,292 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertCircle,
-  ArrowLeft,
-  Bell,
-  CheckCircle2,
-  Clock,
-  RefreshCw,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import DashboardLayout from "@/components/DashboardLayout";
+import { Bell, AlertCircle, RefreshCw, Save, Trash2, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 
-/**
- * Erinnerungen & Kontaktstatus page.
- *
- * Shows a compact list of customers that need to be followed up on
- * (called / messaged via WhatsApp). Each row is colour-coded:
- *  - 🟢 green  : ≥ 48 h since last update — time to reach out again
- *  - 🟡 yellow : < 48 h, still too early
- *
- * The list does NOT contain full customer data — only name, kundennummer
- * and current Versuch attempt. A trash icon lets the user permanently
- * remove a reminder when work with the customer is complete.
- *
- * Permissions:
- *  - admin → sees reminders from all branches
- *  - sales → sees only their own branch's reminders
- *  - everyone else → blocked at the API layer (we still render a
- *    friendly message so they know what's happening)
- */
+const formatGermanDate = (d: Date | string | null | undefined): string => {
+  if (!d) return "—";
+  const date = typeof d === "string" ? new Date(d) : d;
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+};
 
-interface ReminderRow {
+const toInputDate = (d: Date | string | null | undefined): string => {
+  if (!d) return "";
+  const date = typeof d === "string" ? new Date(d) : d;
+  if (isNaN(date.getTime())) return "";
+  const yyyy = date.getUTCFullYear();
+  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(date.getUTCDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+const VERSUCH_OPTIONS = ["Versuch 1", "Versuch 2", "Versuch 3", "Versuch 4", "Versuch 5", "Versuch 6"];
+
+type ReminderRow = {
   id: number;
   customerId: number;
   branchId: number;
   customerName: string;
   kundennummer: string;
   versuch: string | null;
-  lastUpdatedAt: string | Date;
-  createdAt: string | Date;
-  colorState: "green" | "yellow";
+  reminderDate: string | null;
+  lastUpdatedAt: string;
   hoursSinceUpdate: number;
-}
-
-function formatHoursAgo(hours: number): string {
-  if (hours < 1) return "vor wenigen Minuten";
-  if (hours < 24) return `vor ${hours} Stunde${hours === 1 ? "" : "n"}`;
-  const days = Math.floor(hours / 24);
-  return `vor ${days} Tag${days === 1 ? "" : "en"}`;
-}
-
-function ColorDot({ state }: { state: "green" | "yellow" }) {
-  const color = state === "green" ? "bg-emerald-500" : "bg-amber-400";
-  const ring = state === "green" ? "ring-emerald-200" : "ring-amber-200";
-  return (
-    <span
-      className={`inline-block h-3 w-3 rounded-full ${color} ring-4 ${ring}`}
-      aria-label={state === "green" ? "Bereit zum Kontaktieren" : "Noch zu früh"}
-    />
-  );
-}
-
-function StatCard({
-  title,
-  value,
-  hint,
-  icon: Icon,
-  bg,
-}: {
-  title: string;
-  value: string | number;
-  hint?: string;
-  icon: React.ElementType;
-  bg: string;
-}) {
-  return (
-    <Card>
-      <CardContent className="pt-5 pb-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm text-gray-500 mb-1">{title}</p>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-            {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
-          </div>
-          <div className={`p-2 rounded-lg ${bg}`}>
-            <Icon size={20} className="text-white" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+};
 
 export default function Reminders() {
-  const [, setLocation] = useLocation();
   const { user } = useAuth();
-  const role = user?.role ?? "";
-  const allowed = role === "admin" || role === "sales";
+  const [editing, setEditing] = useState<ReminderRow | null>(null);
+  const [editDate, setEditDate] = useState<string>("");
+  const [editVersuch, setEditVersuch] = useState<string>("Versuch 1");
 
-  const [search, setSearch] = useState("");
-  const [confirmDelete, setConfirmDelete] = useState<ReminderRow | null>(null);
+  const isAllowed = user?.role === "admin" || user?.role === "sales";
+
+  const remindersQuery = trpc.reminders.list.useQuery(undefined, {
+    enabled: isAllowed,
+    refetchInterval: 60_000,
+  });
 
   const utils = trpc.useUtils();
-  const remindersQuery = trpc.reminders.list.useQuery(undefined, {
-    enabled: allowed,
-    refetchInterval: 60_000, // refresh once per minute so colors flip live
-  });
 
-  const deleteMutation = trpc.reminders.delete.useMutation({
+  const updateReminder = trpc.reminders.update.useMutation({
     onSuccess: () => {
-      toast.success("Erinnerung gelöscht.");
+      toast.success("✓ تم حفظ التذكير");
       utils.reminders.list.invalidate();
-      setConfirmDelete(null);
+      setEditing(null);
     },
-    onError: err => {
-      toast.error(err.message || "Löschen fehlgeschlagen.");
-    },
+    onError: (e) => toast.error(`خطأ: ${e.message}`),
   });
 
-  if (!allowed) {
+  const clearReminder = trpc.reminders.clear.useMutation({
+    onSuccess: () => {
+      toast.success("✓ تم إلغاء التذكير");
+      utils.reminders.list.invalidate();
+      setEditing(null);
+    },
+    onError: (e) => toast.error(`خطأ: ${e.message}`),
+  });
+
+  if (!isAllowed) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <AlertCircle size={20} />
-              Keine Berechtigung
-            </CardTitle>
-            <CardDescription>
-              Diese Seite ist nur für Admin- und Vertriebsbenutzer verfügbar.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              onClick={() => setLocation("/")}
-              className="gap-2"
-            >
-              <ArrowLeft size={16} />
-              Zurück zur Startseite
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardLayout>
+        <div className="max-w-md mx-auto mt-12 p-8 bg-white rounded-2xl shadow text-center">
+          <AlertCircle className="mx-auto h-10 w-10 text-red-500 mb-3" />
+          <h2 className="text-lg font-bold mb-1">ليس لديك صلاحية</h2>
+          <p className="text-sm text-gray-600">
+            هذا القسم متاح فقط لمدير النظام وفريق المبيعات.
+          </p>
+        </div>
+      </DashboardLayout>
     );
   }
 
-  const allRows: ReminderRow[] = (remindersQuery.data ?? []) as ReminderRow[];
+  const reminders = (remindersQuery.data ?? []) as ReminderRow[];
 
-  const filtered = allRows.filter(r => {
-    if (!search.trim()) return true;
-    const q = search.trim().toLowerCase();
-    return (
-      r.customerName.toLowerCase().includes(q) ||
-      r.kundennummer.toLowerCase().includes(q) ||
-      (r.versuch ?? "").toLowerCase().includes(q)
-    );
-  });
+  const openEditDialog = (r: ReminderRow) => {
+    setEditing(r);
+    setEditDate(toInputDate(r.reminderDate));
+    setEditVersuch(r.versuch || "Versuch 1");
+  };
 
-  const greenCount = allRows.filter(r => r.colorState === "green").length;
-  const yellowCount = allRows.filter(r => r.colorState === "yellow").length;
+  const handleSave = () => {
+    if (!editing) return;
+    updateReminder.mutate({
+      id: editing.id,
+      reminderDate: editDate || null,
+      versuch: editVersuch,
+    });
+  };
+
+  const handleClear = () => {
+    if (!editing) return;
+    if (!confirm("هل أنت متأكد من إلغاء التذكير؟ سيختفي العميل من القائمة.")) {
+      return;
+    }
+    clearReminder.mutate({ id: editing.id });
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLocation("/")}
-              className="gap-2"
-            >
-              <ArrowLeft size={16} />
-              <span className="hidden sm:inline">Zurück</span>
-            </Button>
-            <div>
-              <h1 className="text-xl font-bold text-[#1a4d6d] flex items-center gap-2">
-                <Bell size={20} className="text-[#d97e3a]" />
-                Erinnerungen & Kontaktstatus
-              </h1>
-              <p className="text-xs text-gray-500">
-                Liste der Kunden, die nachverfolgt werden müssen
-              </p>
-            </div>
+    <DashboardLayout>
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Bell className="h-6 w-6 text-emerald-600" />
+              تذكير المراسلة والحالة
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              العملاء الذين يحتاجون متابعة اليوم
+            </p>
           </div>
-
           <Button
             variant="outline"
             size="sm"
             onClick={() => remindersQuery.refetch()}
-            disabled={remindersQuery.isFetching}
-            className="gap-2"
+            className="flex items-center gap-1"
           >
-            <RefreshCw
-              size={14}
-              className={remindersQuery.isFetching ? "animate-spin" : ""}
-            />
-            Aktualisieren
+            <RefreshCw size={14} /> تحديث
           </Button>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <StatCard
-            title="Gesamt"
-            value={allRows.length}
-            hint="alle Erinnerungen"
-            icon={Bell}
-            bg="bg-[#1a4d6d]"
-          />
-          <StatCard
-            title="Bereit"
-            value={greenCount}
-            hint="≥ 48 h — jetzt kontaktieren"
-            icon={CheckCircle2}
-            bg="bg-emerald-500"
-          />
-          <StatCard
-            title="Wartend"
-            value={yellowCount}
-            hint="< 48 h — noch zu früh"
-            icon={Clock}
-            bg="bg-amber-400"
-          />
-        </div>
+        {/* Loading */}
+        {remindersQuery.isLoading && (
+          <Card>
+            <CardContent className="py-8 text-center text-gray-500">
+              جاري التحميل...
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Search */}
-        <div className="relative max-w-md">
-          <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-          <Input
-            placeholder="Suche nach Name, Kundennummer, Versuch …"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
+        {/* Empty state */}
+        {!remindersQuery.isLoading && reminders.length === 0 && (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Bell className="mx-auto h-10 w-10 text-gray-300 mb-3" />
+              <p className="text-gray-500">لا توجد تذكيرات اليوم</p>
+              <p className="text-xs text-gray-400 mt-1">
+                التذكيرات تظهر هنا تلقائياً عندما يحين موعدها
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* List */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              Kundenliste{" "}
-              <span className="text-sm font-normal text-gray-500">
-                ({filtered.length} {filtered.length === 1 ? "Eintrag" : "Einträge"})
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {remindersQuery.isLoading ? (
-              <p className="text-center py-12 text-gray-500">
-                Erinnerungen werden geladen …
-              </p>
-            ) : filtered.length === 0 ? (
-              <div className="text-center py-12 space-y-2">
-                <Bell size={32} className="mx-auto text-gray-300" />
-                <p className="text-gray-500">
-                  {allRows.length === 0
-                    ? "Noch keine Erinnerungen vorhanden."
-                    : "Keine Treffer für die aktuelle Suche."}
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-gray-50">
-                      <th className="text-left p-3 w-10"></th>
-                      <th className="text-left p-3">Name</th>
-                      <th className="text-left p-3">Kundennummer</th>
-                      <th className="text-left p-3">Versuch</th>
-                      <th className="text-left p-3">Letzte Aktualisierung</th>
-                      <th className="text-right p-3 w-20">Aktion</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map(r => (
-                      <tr
-                        key={r.id}
-                        className="border-b hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="p-3">
-                          <ColorDot state={r.colorState} />
-                        </td>
-                        <td className="p-3 font-medium text-gray-900">
-                          {r.customerName}
-                        </td>
-                        <td className="p-3 font-mono text-gray-700">
-                          {r.kundennummer}
-                        </td>
-                        <td className="p-3">
-                          {r.versuch ? (
-                            <span className="inline-flex items-center rounded-full border border-[#1a4d6d]/20 bg-[#eaf2f7] px-2 py-0.5 text-xs font-medium text-[#1a4d6d]">
-                              {r.versuch}
-                            </span>
-                          ) : (
-                            <span className="text-gray-400">—</span>
-                          )}
-                        </td>
-                        <td className="p-3 text-gray-600">
-                          {formatHoursAgo(r.hoursSinceUpdate)}
-                        </td>
-                        <td className="p-3 text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setConfirmDelete(r)}
-                            className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                          >
-                            <Trash2 size={16} />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {reminders.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>قائمة التذكيرات المستحقة</span>
+                <Badge
+                  variant="outline"
+                  className="bg-emerald-50 text-emerald-700 border-emerald-200"
+                >
+                  {reminders.length} تذكير
+                </Badge>
+              </CardTitle>
+              <CardDescription>اضغط على أي عميل لتعديل التذكير</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {reminders.map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => openEditDialog(r)}
+                    className="w-full px-4 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors text-right"
+                  >
+                    {/* Always green — every visible item is "due" */}
+                    <span
+                      className="h-3 w-3 rounded-full bg-emerald-500 ring-4 ring-emerald-200 shrink-0"
+                      aria-label="تذكير مستحق"
+                    />
 
-        {/* Legend */}
-        <div className="flex flex-wrap gap-4 text-xs text-gray-600">
-          <div className="flex items-center gap-2">
-            <ColorDot state="green" />
-            <span>Mehr als 2 Tage seit der letzten Aktualisierung</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <ColorDot state="yellow" />
-            <span>Noch zu früh für eine erneute Kontaktaufnahme</span>
-          </div>
-        </div>
-      </main>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-3 flex-wrap">
+                        <span className="font-semibold text-gray-900">{r.customerName}</span>
+                        <span className="text-xs text-gray-500 font-mono">{r.kundennummer}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                        {r.versuch && (
+                          <Badge variant="outline" className="text-[10px] py-0 px-1.5">
+                            {r.versuch}
+                          </Badge>
+                        )}
+                        <span>التذكير: {formatGermanDate(r.reminderDate)}</span>
+                      </div>
+                    </div>
 
-      {/* Delete confirmation */}
-      <Dialog
-        open={!!confirmDelete}
-        onOpenChange={open => !open && setConfirmDelete(null)}
-      >
-        <DialogContent>
+                    <ChevronLeft className="h-4 w-4 text-gray-400 shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Erinnerung löschen?</DialogTitle>
+            <DialogTitle>إدارة التذكير</DialogTitle>
             <DialogDescription>
-              {confirmDelete && (
+              {editing && (
                 <>
-                  Erinnerung für <strong>{confirmDelete.customerName}</strong>{" "}
-                  ({confirmDelete.kundennummer}) wird permanent entfernt. Diese
-                  Aktion kann nicht rückgängig gemacht werden.
+                  <span className="block">{editing.customerName}</span>
+                  <span className="block text-xs font-mono text-gray-500 mt-1">
+                    {editing.kundennummer}
+                  </span>
                 </>
               )}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="reminderDate">موعد التذكير القادم</Label>
+              <Input
+                id="reminderDate"
+                type="date"
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+              />
+              <p className="text-xs text-gray-500">
+                اترك الحقل فارغاً واحفظ لإلغاء التذكير
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="versuch">رقم المحاولة (1 - 6)</Label>
+              <select
+                id="versuch"
+                value={editVersuch}
+                onChange={(e) => setEditVersuch(e.target.value)}
+                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+              >
+                {VERSUCH_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+              {editVersuch === "Versuch 6" && (
+                <p className="text-xs text-orange-600 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> هذه هي المحاولة الأخيرة
+                </p>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 flex-row-reverse">
             <Button
-              variant="outline"
-              onClick={() => setConfirmDelete(null)}
-              disabled={deleteMutation.isPending}
+              onClick={handleSave}
+              disabled={updateReminder.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
-              Abbrechen
+              <Save className="h-4 w-4 ml-1" />
+              {updateReminder.isPending ? "جاري الحفظ..." : "حفظ"}
             </Button>
             <Button
-              variant="destructive"
-              onClick={() =>
-                confirmDelete &&
-                deleteMutation.mutate({ id: confirmDelete.id })
-              }
-              disabled={deleteMutation.isPending}
-              className="gap-2"
+              variant="outline"
+              onClick={handleClear}
+              disabled={clearReminder.isPending}
+              className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
             >
-              <Trash2 size={16} />
-              {deleteMutation.isPending ? "Löschen …" : "Endgültig löschen"}
+              <Trash2 className="h-4 w-4 ml-1" />
+              إلغاء التذكير
+            </Button>
+            <Button variant="ghost" onClick={() => setEditing(null)}>
+              إغلاق
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardLayout>
   );
 }
