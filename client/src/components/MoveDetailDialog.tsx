@@ -627,7 +627,7 @@ export default function MoveDetailDialog({ moveId, mode, onClose, onSaved }: Pro
               <Field label="Filiale">{sel(sitz, setSitz, branchOptions)}</Field>
               <Field label="Umzug Termin Bis">{inp(terminBis, setTerminBis, { type: "date", placeholder: "Bis Datum" })}</Field>
               <Field label="Email">{inp(email, setEmail, { type: "email", placeholder: "email@example.com" })}</Field>
-              <Field label="Status">{sel(status2, setStatus2, ["Registriert auf Apex","Angebot gesendet","Bestaetigt","Abgesagt","Abgeschlossen"])}</Field>
+              <Field label="Status">{sel(status2, setStatus2, ["Angaben vollständig","Nachverfolgen","Online-besichtigungtermin","Besichtigungtermin","Absagen"])}</Field>
               <Field label="Kundennummer">{inp(umzugscode, setUmzugscode, { placeholder: "00001", readOnly: true })}</Field>
               <Field label="Price Brutto (EUR)">{inp(priceBrutto, setPriceBrutto, { type: "number", placeholder: "0" })}</Field>
               <Field label="Versuch">{sel(versuch, setVersuch, ["Versuch 1","Versuch 2","Versuch 3","Versuch 4","Versuch 5","Versuch 6"])}</Field>
