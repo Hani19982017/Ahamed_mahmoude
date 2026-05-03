@@ -477,7 +477,7 @@ export default function AdminReports() {
           </div>
         ) : s ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <KpiCard title="Gesamtumsatz (Brutto)" value={fmt(s.totalRevenue)} sub={`${s.totalMoves} Aufträge gesamt`} icon={Euro} color="bg-[#1a4d6d]" />
+            {/* <KpiCard title="Gesamtumsatz (Brutto)" value={fmt(s.totalRevenue)} sub={`${s.totalMoves} Aufträge gesamt`} icon={Euro} color="bg-[#1a4d6d]" /> */}
             <KpiCard title="Davon bezahlt" value={fmt(s.paidRevenue ?? 0)} sub={`${s.paidMoves} bezahlte Aufträge`} icon={CheckCircle} color="bg-green-600" />
             <KpiCard title="Gesamtaufträge" value={String(s.totalMoves)} sub={`${s.completedMoves} abgeschlossen`} icon={Package} color="bg-[#1a4d6d]" />
             <KpiCard title="Offene Zahlungen" value={String(s.unpaidMoves)} sub={`Aufträge unbezahlt`} icon={XCircle} color="bg-amber-500" />
